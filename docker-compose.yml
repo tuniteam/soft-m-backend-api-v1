@@ -1,0 +1,95 @@
+# ============================================
+# SOFT-M Backend - Docker Compose
+# ============================================
+# Usage:
+#   Development:  docker-compose up -d
+#   With Studio:  docker-compose --profile tools up -d
+#   Stop:         docker-compose down
+#   Reset DB:     docker-compose down -v && docker-compose up -d
+#   Logs:         docker-compose logs -f api
+# ============================================
+
+services:
+  # ===========================================
+  # PostgreSQL Database
+  # ===========================================
+  db:
+    image: postgres:15-alpine
+    container_name: softm-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-softm}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-softm_password}
+      POSTGRES_DB: ${POSTGRES_DB:-softm_db}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-softm} -d ${POSTGRES_DB:-softm_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - softm-network
+
+  # ===========================================
+  # SOFT-M API
+  # ===========================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: softm-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${PORT:-3000}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-softm}:${POSTGRES_PASSWORD:-softm_password}@db:5432/${POSTGRES_DB:-softm_db}?schema=public
+      INSEE_API_MOCK: ${INSEE_API_MOCK:-false}
+    ports:
+      - "${PORT:-3000}:3000"
+    networks:
+      - softm-network
+
+  # ===========================================
+  # Prisma Studio (Database GUI) - Optional
+  # ===========================================
+  prisma-studio:
+    image: node:22-alpine
+    container_name: softm-prisma-studio
+    restart: unless-stopped
+    profiles:
+      - tools  # Only start with: docker-compose --profile tools up -d
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-softm}:${POSTGRES_PASSWORD:-softm_password}@db:5432/${POSTGRES_DB:-softm_db}?schema=public
+    ports:
+      - "5555:5555"
+    volumes:
+      - ./prisma:/app/prisma
+      - ./package.json:/app/package.json
+    working_dir: /app
+    command: sh -c "npm install prisma @prisma/client && npx prisma studio --port 5555 --browser none"
+    networks:
+      - softm-network
+
+# ===========================================
+# Volumes
+# ===========================================
+volumes:
+  postgres_data:
+    driver: local
+
+# ===========================================
+# Networks
+# ===========================================
+networks:
+  softm-network:
+    driver: bridge

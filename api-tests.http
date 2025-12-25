@@ -1,0 +1,95 @@
+# SOFT-M API - Tests REST Client
+# Extension VS Code : REST Client (humao.rest-client)
+
+@baseUrl = http://localhost:3000/api/v1
+
+### ============================================
+### CLIENTS
+### ============================================
+
+### Vérifier un SIRET (données INSEE)
+GET {{baseUrl}}/clients/lookup-siret/21950001600019
+
+### Créer un client (Étape 1)
+POST {{baseUrl}}/clients
+Content-Type: application/json
+
+{
+  "clientType": "MAIRIE",
+  "siret": "21950001600019",
+  "siren": "219500016",
+  "name": "Mairie de Villebon-sur-Yvette",
+  "legalForm": "Commune",
+  "legalFormCode": "7210",
+  "nafCode": "84.11Z",
+  "addressLine1": "1 Place du Marché",
+  "postalCode": "91140",
+  "city": "Villebon-sur-Yvette",
+  "email": "contact@villebon.fr",
+  "phone": "0169311234"
+}
+
+### Récupérer un client par ID
+# Remplacer {clientId} par un vrai UUID
+GET {{baseUrl}}/clients/{clientId}
+
+### ============================================
+### SERVICES (UC1-05b)
+### ============================================
+
+### Liste des types de services (référentiel)
+GET {{baseUrl}}/services/types
+
+### Services configurés pour un client
+# Remplacer {clientId} par un vrai UUID
+GET {{baseUrl}}/clients/{clientId}/services
+
+### Configurer les services d'un client
+# Remplacer {clientId} par un vrai UUID
+PUT {{baseUrl}}/clients/{clientId}/services
+Content-Type: application/json
+
+{
+  "services": [
+    { "serviceType": "CANTEEN", "maxConfigs": 1 },
+    { "serviceType": "DAYCARE", "maxConfigs": 3 },
+    { "serviceType": "LEISURE_CENTER", "maxConfigs": null }
+  ]
+}
+
+### ============================================
+### WORKFLOW COMPLET TEST
+### ============================================
+
+### 1. Vérifier SIRET disponible
+GET {{baseUrl}}/clients/lookup-siret/12345678901234
+
+### 2. Créer le client
+POST {{baseUrl}}/clients
+Content-Type: application/json
+
+{
+  "clientType": "CCAS",
+  "siret": "12345678901234",
+  "siren": "123456789",
+  "name": "CCAS Test",
+  "legalForm": "CCAS",
+  "addressLine1": "10 Rue Test",
+  "postalCode": "75001",
+  "city": "Paris",
+  "email": "test@ccas.fr"
+}
+
+### 3. Configurer les services (utiliser l'ID retourné)
+PUT {{baseUrl}}/clients/{clientId}/services
+Content-Type: application/json
+
+{
+  "services": [
+    { "serviceType": "CANTEEN", "maxConfigs": 2 },
+    { "serviceType": "DAYCARE", "maxConfigs": 5 }
+  ]
+}
+
+### 4. Vérifier la configuration
+GET {{baseUrl}}/clients/{clientId}/services

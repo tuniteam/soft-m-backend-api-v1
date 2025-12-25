@@ -1,0 +1,166 @@
+{
+  "info": {
+    "name": "SOFT-M API",
+    "_postman_id": "soft-m-api-collection",
+    "description": "SOFT-M Backend API - Gestion Périscolaire",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Clients",
+      "description": "Gestion des clients (collectivités territoriales)",
+      "item": [
+        {
+          "name": "Create Client (Full)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clients",
+              "host": ["{{baseUrl}}"],
+              "path": ["clients"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientType\": \"MAIRIE\",\n  \"siret\": \"21920063500014\",\n  \"name\": \"Mairie de Saint-Cloud\",\n  \"address\": \"Place Charles de Gaulle\",\n  \"postalCode\": \"92210\",\n  \"city\": \"Saint-Cloud\",\n  \"email\": \"contact@mairie-saint-cloud.fr\",\n  \"phone\": \"+33146021234\",\n  \"accountingSystem\": \"BERGER_LEVRAULT\",\n  \"collectivityCode\": \"COLL92210\",\n  \"budgetCode\": \"BUD2024\"\n}"
+            },
+            "description": "Create a new client with all fields"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"id\": \"cjld2cjxh0000qzrmn831i7rn\",\n  \"name\": \"Mairie de Saint-Cloud\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Client (Minimal)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clients",
+              "host": ["{{baseUrl}}"],
+              "path": ["clients"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientType\": \"MAIRIE\",\n  \"siret\": \"21750001300014\",\n  \"name\": \"Mairie de Paris\",\n  \"address\": \"Place de l'Hôtel de Ville\",\n  \"postalCode\": \"75004\",\n  \"city\": \"Paris\",\n  \"email\": \"contact@paris.fr\",\n  \"phone\": \"+33142762000\"\n}"
+            },
+            "description": "Create a new client with required fields only"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"id\": \"cjld2cjxh0001qzrmn831i7rn\",\n  \"name\": \"Mairie de Paris\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Client - CCAS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clients",
+              "host": ["{{baseUrl}}"],
+              "path": ["clients"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientType\": \"CCAS\",\n  \"siret\": \"21690123400015\",\n  \"name\": \"CCAS de Lyon\",\n  \"address\": \"1 Place de la Comédie\",\n  \"postalCode\": \"69001\",\n  \"city\": \"Lyon\",\n  \"email\": \"ccas@lyon.fr\",\n  \"phone\": \"+33472103030\"\n}"
+            },
+            "description": "Create a CCAS type client"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Client - Duplicate SIRET (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clients",
+              "host": ["{{baseUrl}}"],
+              "path": ["clients"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientType\": \"MAIRIE\",\n  \"siret\": \"21920063500014\",\n  \"name\": \"Duplicate Test\",\n  \"address\": \"Test Address\",\n  \"postalCode\": \"75001\",\n  \"city\": \"Paris\",\n  \"email\": \"test@test.fr\",\n  \"phone\": \"+33140000000\"\n}"
+            },
+            "description": "Test duplicate SIRET error (should return 409)"
+          },
+          "response": [
+            {
+              "name": "409 Conflict",
+              "status": "Conflict",
+              "code": 409,
+              "body": "{\n  \"statusCode\": 409,\n  \"message\": \"A client with this SIRET already exists\",\n  \"error\": \"Conflict\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Client - Invalid SIRET (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clients",
+              "host": ["{{baseUrl}}"],
+              "path": ["clients"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientType\": \"MAIRIE\",\n  \"siret\": \"123\",\n  \"name\": \"Invalid SIRET Test\",\n  \"address\": \"Test Address\",\n  \"postalCode\": \"75001\",\n  \"city\": \"Paris\",\n  \"email\": \"test@test.fr\",\n  \"phone\": \"+33140000000\"\n}"
+            },
+            "description": "Test invalid SIRET format (should return 400)"
+          },
+          "response": [
+            {
+              "name": "400 Bad Request",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": [\"SIRET must contain exactly 14 digits\"],\n  \"error\": \"Bad Request\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

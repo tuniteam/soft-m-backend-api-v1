@@ -1,0 +1,101 @@
+# ============================================
+# SOFT-M Backend - Docker Compose (Development)
+# ============================================
+# Usage:
+#   docker-compose -f docker-compose.dev.yml up -d
+#   docker-compose -f docker-compose.dev.yml logs -f api
+# ============================================
+# Features:
+#   - Hot-reload with source code mounting
+#   - All devDependencies available
+#   - Debug mode enabled
+# ============================================
+
+services:
+  # ===========================================
+  # PostgreSQL Database
+  # ===========================================
+  db:
+    image: postgres:15-alpine
+    container_name: softm-db-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-softm}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-softm_password}
+      POSTGRES_DB: ${POSTGRES_DB:-softm_db}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-softm} -d ${POSTGRES_DB:-softm_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - softm-network-dev
+
+  # ===========================================
+  # SOFT-M API (Development with Hot Reload)
+  # ===========================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: softm-api-dev
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: ${PORT:-3000}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-softm}:${POSTGRES_PASSWORD:-softm_password}@db:5432/${POSTGRES_DB:-softm_db}?schema=public
+    ports:
+      - "${PORT:-3000}:3000"
+      - "9229:9229"  # Debug port
+    volumes:
+      # Mount source code for hot-reload
+      - .:/app
+      - /app/node_modules  # Exclude node_modules from mount
+    command: npm run start:dev
+    networks:
+      - softm-network-dev
+
+  # ===========================================
+  # Prisma Studio (Database GUI)
+  # ===========================================
+  prisma-studio:
+    image: node:22-alpine
+    container_name: softm-prisma-studio-dev
+    restart: unless-stopped
+    profiles:
+      - tools
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-softm}:${POSTGRES_PASSWORD:-softm_password}@db:5432/${POSTGRES_DB:-softm_db}?schema=public
+    ports:
+      - "5555:5555"
+    volumes:
+      - ./prisma:/app/prisma
+      - ./package.json:/app/package.json
+    working_dir: /app
+    command: sh -c "npm install prisma @prisma/client && npx prisma studio --port 5555 --browser none"
+    networks:
+      - softm-network-dev
+
+# ===========================================
+# Volumes
+# ===========================================
+volumes:
+  postgres_data_dev:
+    driver: local
+
+# ===========================================
+# Networks
+# ===========================================
+networks:
+  softm-network-dev:
+    driver: bridge

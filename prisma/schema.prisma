@@ -1,0 +1,73 @@
+// ============================================
+// SOFT-M - Prisma Schema
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum ClientType {
+  MAIRIE
+  CCAS
+  SYNDICAT
+  CENTRE_LOISIRS
+}
+
+enum ClientStatus {
+  DRAFT
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+enum AccountingSystem {
+  JVS
+  BERGER_LEVRAULT
+  COSOLUCE
+}
+
+// ============================================
+// MODELS
+// ============================================
+
+model Client {
+  id String @id @default(cuid())
+
+  // Identification
+  clientType ClientType @map("client_type")
+  siret      String     @unique @db.VarChar(14)
+  name       String     @db.VarChar(255)
+
+  // Adresse
+  address    String @db.VarChar(255)
+  postalCode String @map("postal_code") @db.VarChar(5)
+  city       String @db.VarChar(100)
+
+  // Comptabilité (optionnel)
+  accountingSystem AccountingSystem? @map("accounting_system")
+  collectivityCode String?           @map("collectivity_code") @db.VarChar(15)
+  budgetCode       String?           @map("budget_code") @db.VarChar(15)
+
+  // Contact
+  email String @db.VarChar(255)
+  phone String @db.VarChar(20)
+
+  // Métadonnées
+  status    ClientStatus @default(DRAFT)
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  @@index([siret])
+  @@index([status])
+  @@index([clientType])
+  @@map("clients")
+}
