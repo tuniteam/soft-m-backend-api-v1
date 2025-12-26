@@ -7,6 +7,7 @@ import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
+import { AllExceptionsFilter } from "./common/pipes/all-exceptions.filter";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -26,7 +27,7 @@ async function bootstrap() {
       transform: true, // Transforme les types automatiquement
     })
   );
-
+app.useGlobalFilters(new AllExceptionsFilter());
   // ============================================
   // CORS
   // ============================================
