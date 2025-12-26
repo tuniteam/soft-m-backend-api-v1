@@ -49,10 +49,6 @@ REST API for SOFT-M - School and extracurricular management system for French lo
 ## Features
 
 - **Clients**: Manage local authorities (Mairies, CCAS, etc.)
-- **Treasury**: Configure treasury and accounting system information
-- **Services**: Configure available services (Canteen, Daycare, Leisure Center)
-- **Users**: Manage managers and staff
-- **Schools**: Manage schools and classes
 
 ## Authentication
 
@@ -63,33 +59,14 @@ REST API for SOFT-M - School and extracurricular management system for French lo
 | Enum | Values |
 |------|--------|
 | ClientType | MAIRIE, CCAS, SYNDICAT, CENTRE_LOISIRS |
-| ClientStatus | DRAFT, PENDING, ACTIVE, SUSPENDED, ARCHIVED |
-| ServiceType | CANTEEN, DAYCARE, LEISURE_CENTER, COMMUNITY_HALL |
-| RoleType | SUPER_ADMIN, GESTIONNAIRE_MAIRIE, AGENT_ECOLE, CUISINIER |
-| UserStatus | DRAFT, PENDING, ACTIVE, SUSPENDED, ARCHIVED |
-| SchoolType | MATERNELLE, ELEMENTAIRE, GROUPE, COLLEGE, LYCEE |
-| SchoolStatus | DRAFT, ACTIVE, ARCHIVED |
-| AccountingSystem | MAGNUS, CIRIL, SEGILOG, BERGER_LEVRAULT, JVS, COSOLUCE, OTHER |
-
-## Onboarding Workflow (3 Steps)
-
-1. **Step 1**: Create client (POST /clients) → status: DRAFT
-2. **Step 2**: Configure treasury (PUT /clients/{id}/treasury)
-3. **Step 3**: Create manager (POST /clients/{id}/manager) → status: PENDING (auto)
-4. **Activation**: When manager activates account → status: ACTIVE (auto)
-
-Note: PENDING and ACTIVE statuses are managed automatically.
-Admin can only set SUSPENDED or ARCHIVED via PATCH /clients/{id}/status.
+| ClientStatus | DRAFT, ACTIVE, SUSPENDED, ARCHIVED |
+| AccountingSystem | JVS, BERGER_LEVRAULT, COSOLUCE |
     `
     )
     .setVersion("1.0.0")
     .setContact("SOFT-M Team", "https://soft-m.fr", "contact@soft-m.fr")
     .setLicense("Proprietary", "")
     .addTag("Clients", "Local authorities management")
-    .addTag("Treasury", "Treasury and accounting system configuration")
-    .addTag("Services", "Service types configuration")
-    .addTag("Users", "Users and roles management")
-    .addTag("Schools", "Schools and classes management")
     .addServer("http://localhost:3000", "Development")
     .build();
 
